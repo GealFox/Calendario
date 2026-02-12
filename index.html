@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estado de Guille - Sistema Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f4f7f6;
+      --container-bg: #ffffff;
+      --text-color: #333;
+      --header-bg: #f8f9fa;
+      --button-bg: #e9ecef;
+      --accent: #2196F3;
+      --color-trabajo: #a5d6a7;
+      --color-franco: #90caf9;
+      --color-feriado: #ef9a9a;
+      --color-vacaciones: #ce93d8;
+      --color-puente: #ffcc80;
+      --sidebar-width: 320px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+
+    body.dark-mode {
+      --bg-color: #121212;
+      --container-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --header-bg: #2d2d2d;
+      --button-bg: #333;
+      --shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      transition: 0.3s;
+      overflow-x: hidden;
+    }
+
+    /* --- PANTALLA DE CARGA --- */
+    #appLoader {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-color);
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.5s ease;
+    }
+    .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--button-bg);
+      border-top: 5px solid var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loader-text { font-weight: 500; color: var(--accent); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* --- MENU SANDWICH & SIDEBAR --- */
+    #menuToggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: calc(-1 * var(--sidebar-width));
+      width: var(--sidebar-width);
+      height: 100%;
+      background: var(--container-bg);
+      z-index: 999;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 80px 0 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    #sidebar.open { left: 0; }
+    .sidebar-header { padding: 0 25px 20px; border-bottom: 1px solid var(--button-bg); margin-bottom: 10px; }
+    .sidebar-header h2 { margin: 0; font-size: 1.4em; color: var(--accent); }
+
+    /* --- ACORDEÓN --- */
+    .accordion-item { border-bottom: 1px solid var(--button-bg); }
+    .accordion-header {
+      width: 100%; padding: 18px 25px; background: none; border: none;
+      color: var(--text-color); display: flex; justify-content: space-between;
+      align-items: center; cursor: pointer; font-weight: 500; font-size: 1.05em;
+      text-align: left; transition: background 0.2s;
+    }
+    .accordion-header:hover { background: var(--header-bg); }
+    .accordion-header::after { content: '▼'; font-size: 0.7em; transition: transform 0.3s; }
+    .accordion-item.active .accordion-header::after { transform: rotate(180deg); }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s; background: var(--header-bg); }
+    .accordion-item.active .accordion-content { max-height: 800px; padding: 20px 25px; }
+
+    /* --- FORMULARIOS --- */
+    .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+    label { font-size: 0.85em; font-weight: 500; opacity: 0.8; }
+    input { padding: 10px; border-radius: 8px; border: 1px solid var(--button-bg); background: var(--container-bg); color: var(--text-color); font-size: 1em; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: 0.2s; font-size: 0.95em; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-danger { background: #ff5252; color: white; }
+    .btn-secondary { background: var(--button-bg); color: var(--text-color); }
+
+    /* --- HISTORIAL UI --- */
+    .history-item { background: var(--container-bg); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--accent); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    /* --- CONTENIDO PRINCIPAL --- */
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 998; display: none; backdrop-filter: blur(2px); }
+    .overlay.active { display: block; }
+    .main-content { max-width: 900px; margin: 40px auto; padding: 20px; text-align: center; }
+
+    .iframe-wrapper { overflow: hidden; border-radius: var(--radius); box-shadow: var(--shadow); margin: 20px auto 30px; max-width: 500px; background: #000; }
+    .iframe-wrapper iframe { width: 100%; height: 280px; border: none; display: block; }
+
+    .calendar-container { background: var(--container-bg); padding: 25px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+
+    .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 0.85em; padding: 10px; background: var(--header-bg); border-radius: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .calendar-header h2 { text-transform: capitalize; margin: 0; font-size: 1.3em; }
+
+    .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .day { aspect-ratio: 1/1; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 500; cursor: pointer; transition: transform 0.1s; color: #1a1a1a; position: relative; }
+    .day:hover:not(.day-header) { transform: scale(1.05); }
+    .day-header { font-weight: bold; background: var(--header-bg); color: var(--text-color); cursor: default; aspect-ratio: auto; min-height: 30px; }
+
+    .trabajo { background: var(--color-trabajo); color: #1b5e20; }
+    .franco { background: var(--color-franco); color: #0d47a1; }
+    .feriado { background: var(--color-feriado); color: #b71c1c; font-weight: bold; }
+    .vacacion { background: var(--color-vacaciones); color: #4a148c; }
+    .puente { background: var(--color-puente); color: #e65100; }
+    .no-regime { background: #e0e0e0; color: #777; font-style: italic; }
+
+    .hoy { outline: 3px solid var(--text-color); outline-offset: -2px; z-index: 10; }
+
+    .vacation-title { margin-top: 30px; margin-bottom: 10px; font-size: 1.3em; font-weight: bold; color: var(--accent); }
+
+    .vacation-badge {
+      background: var(--color-vacaciones);
+      color: #4a148c;
+      padding: 20px;
+      border-radius: 15px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+    }
+
+    .month-info-box { margin-top: 20px; text-align: left; background: var(--container-bg); padding: 20px; border-radius: 15px; box-shadow: var(--shadow); border-left: 6px solid var(--accent); }
+
+    /* Modales */
+    #dayModal, #confirmModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--container-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; display: none; width: 300px; text-align: center; }
+
+    #darkModeToggle { position: fixed; top: 20px; right: 20px; z-index: 1000; border: none; background: var(--container-bg); padding: 12px; border-radius: 50%; cursor: pointer; box-shadow: var(--shadow); font-size: 1.2em; }
+
+    @media (max-width: 600px) {
+      .day { font-size: 0.9em; }
+      #sidebar { --sidebar-width: 85%; }
+      .vacation-badge { font-size: 0.8em; padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="appLoader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text" id="loaderStatus">Iniciando Sistema Pro...</div>
+  </div>
+
+  <button id="menuToggle">☰ Centro de Control</button>
+  <button id="darkModeToggle">🌙</button>
+
+  <div class="overlay" id="overlay"></div>
+
+  <div id="sidebar">
+    <div class="sidebar-header">
+        <h2>Panel de Configuración</h2>
+    </div>
+
+    <div class="accordion-item" id="accRegime">
+      <button class="accordion-header">📅 Régimen Modular</button>
+      <div class="accordion-content">
+        <div class="input-group">
+          <label>Días de Trabajo:</label>
+          <input type="number" id="regimeWork" value="4">
+        </div>
+        <div class="input-group">
+          <label>Días de Franco:</label>
+          <input type="number" id="regimeOff" value="2">
+        </div>
+        <div class="input-group">
+          <label>Fecha de Inicio de este Régimen:</label>
+          <p style="font-size: 0.75em; opacity: 0.7; margin: 0;">Los cambios se aplicarán solo de esta fecha en adelante.</p>
+          <input type="date" id="regimeBaseDate" value="2026-02-11">
+        </div>
+        <button class="btn btn-primary" id="saveRegime">Agregar Nuevo Régimen</button>
+        
+        <div style="margin-top:20px;">
+            <label style="color: var(--accent);">Historial de Cambios:</label>
+            <div id="regimeHistoryList"></div>
+            <button class="btn btn-danger" style="margin-top:10px; font-size: 0.8em;" id="resetRegimeHistory">Restablecer Todo el Historial</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item" id="accVac">
+      <button class="accordion-header">🏖️ Vacaciones</button>
+      <div class="accordion-content">
+        <div class="input-group">
+          <label>Total Días Vacaciones:</label>
+          <input type="number" id="vacTotal" value="15">
+        </div>
+        <button class="btn btn-primary" id="saveVacTotal">Guardar Total</button>
+      </div>
+    </div>
+
+    <div class="accordion-item" id="accSystem">
+      <button class="accordion-header">⚙️ Sistema</button>
+      <div class="accordion-content">
+        <button class="btn btn-danger" id="resetAllOverrides">Borrar Cambios Manuales (Overrides)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dayModal">
+    <h3 id="modalDateTitle" style="margin-top:0; color:var(--accent);">Día</h3>
+    <button id="btnSetVacacion" class="btn btn-primary" style="background:var(--color-vacaciones); color:#4a148c;">Vacaciones</button>
+    <button id="btnSetTrabajo" class="btn btn-secondary">Forzar Trabajo</button>
+    <button id="btnSetFranco" class="btn btn-secondary">Forzar Franco</button>
+    <button id="btnDelCambio" class="btn btn-danger">Eliminar Cambio</button>
+    <button id="btnCloseModal" class="btn btn-secondary" style="margin-top:10px">Cancelar</button>
+  </div>
+
+  <div id="confirmModal">
+    <h3 id="confirmTitle" style="color: #ff5252;">¿Confirmar acción?</h3>
+    <p id="confirmText">¿Estás seguro?</p>
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn btn-danger" id="confirmBtnYes">Sí</button>
+      <button class="btn btn-secondary" id="confirmBtnNo">No</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <h1 id="todayStatus" style="font-size: 1.8em; margin-bottom: 0;">Calculando...</h1>
+    
+    <div id="mediaContainer"></div>
+    
+    <div class="calendar-container">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-box" style="background:var(--color-trabajo)"></div>Trabajo</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--color-franco)"></div>Franco</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--color-feriado)"></div>Feriado</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--color-puente)"></div>Puente</div>
+        <div class="legend-item"><div class="legend-box" style="background:var(--color-vacaciones)"></div>Vacaciones</div>
+      </div>
+
+      <div class="calendar-header">
+        <div class="nav-buttons-inline">
+            <button class="btn btn-secondary" style="width:auto; padding: 10px 15px;" id="prevBtn">«</button>
+            <button class="btn btn-primary" style="width:auto; padding: 10px 20px;" id="goTodayBtn">Hoy</button>
+        </div>
+        <h2 id="monthLabel">Mes Año</h2>
+        <button class="btn btn-secondary" style="width:auto; padding: 10px 15px;" id="nextBtn">»</button>
+      </div>
+
+      <div class="grid" id="calendarGrid"></div>
+    </div>
+
+    <div class="vacation-title">📊 Control de Vacaciones</div>
+    <div class="vacation-badge">
+      <div>Totales<br><span id="statTotal" style="font-size: 1.5em;">-</span></div>
+      <div>Usados<br><span id="statUsed" style="font-size: 1.5em;">-</span></div>
+      <div>Restantes<br><span id="statRemaining" style="font-size: 1.5em;">-</span></div>
+    </div>
+    
+    <div class="month-info-box">
+        <h3 style="margin-top:0; font-size: 1.1em;">📅 Detalle del Mes:</h3>
+        <div id="feriadosList"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjpgBTX_LfMirpu7jNuCMqZ6dTr-DC22Q",
+      authDomain: "calendario-guille.firebaseapp.com",
+      projectId: "calendario-guille",
+      storageBucket: "calendario-guille.firebasestorage.app",
+      messagingSenderId: "56762114940",
+      appId: "1:56762114940:web:0b437eaa436952580ffaf9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    const urls = {
+      trabajo: "https://drive.google.com/file/d/1fE2hdLZCNAcs40PMZ9gNrCiXZQA5EJLW/preview?embedded=true",
+      franco: "https://drive.google.com/file/d/1fGs9mFCGeJ9_gCBBRstFJKvbIkax65Wl/preview?embedded=true"
+    };
+
+    let user = null;
+    let config = { regimeHistory: [{ start: '2025-04-07', work: 4, off: 2 }], vacations: { total: 15 } };
+    let overrides = {}; 
+    let initialLoadDone = false;
+    let loadersFinished = { config: false, overrides: false };
+
+    const feriados2026 = [
+      { f: '2026-01-01', n: 'Año Nuevo', t: 'oficial' },
+      { f: '2026-02-16', n: 'Carnaval', t: 'oficial' },
+      { f: '2026-02-17', n: 'Carnaval', t: 'oficial' },
+      { f: '2026-03-23', n: 'Puente Turístico', t: 'puente' },
+      { f: '2026-03-24', n: 'Día de la Memoria', t: 'oficial' },
+      { f: '2026-04-02', n: 'Malvinas', t: 'oficial' },
+      { f: '2026-04-03', n: 'Viernes Santo', t: 'oficial' },
+      { f: '2026-05-01', n: 'Día del Trabajador', t: 'oficial' },
+      { f: '2026-05-25', n: 'Revolución de Mayo', t: 'oficial' },
+      { f: '2026-06-15', n: 'Güemes (Tr.)', t: 'oficial' },
+      { f: '2026-06-20', n: 'Día de la Bandera', t: 'oficial' },
+      { f: '2026-07-09', n: 'Día de la Independencia', t: 'oficial' },
+      { f: '2026-07-10', n: 'Puente Turístico', t: 'puente' },
+      { f: '2026-08-17', n: 'San Martín (Tr.)', t: 'oficial' },
+      { f: '2026-10-12', n: 'Diversidad Cultural (Tr.)', t: 'oficial' },
+      { f: '2026-11-23', n: 'Soberanía Nacional (Tr.)', t: 'oficial' },
+      { f: '2026-12-07', n: 'Puente Turístico', t: 'puente' },
+      { f: '2026-12-08', n: 'Inmaculada Concepción', t: 'oficial' },
+      { f: '2026-12-25', n: 'Navidad', t: 'oficial' }
+    ];
+
+    let currentViewDate = new Date();
+    let selectedDateStr = null;
+    let pendingAction = null;
+
+    // --- ACCORDION ---
+    document.querySelectorAll('.accordion-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.parentElement;
+        const isActive = item.classList.contains('active');
+        document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) item.classList.add('active');
+      });
+    });
+
+    // --- AUTH & LOAD ---
+    const startAuth = async () => {
+        try {
+            document.getElementById('loaderStatus').textContent = "Conectando con la base de datos...";
+            const credential = await signInAnonymously(auth);
+            user = credential.user;
+            loadData();
+        } catch (e) {
+            console.error("Auth error:", e);
+            document.getElementById('loaderStatus').textContent = "Error de conexión. Iniciando en modo offline...";
+            setTimeout(checkLoadProgress, 2000);
+        }
+    };
+
+    const loadData = () => {
+        if (!user) return;
+
+        onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'config'), snap => {
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.regime && !data.regimeHistory) {
+                    data.regimeHistory = [{ start: data.regime.base, work: data.regime.work, off: data.regime.off }];
+                }
+                config = data;
+                updateHistoryUI();
+            }
+            loadersFinished.config = true;
+            checkLoadProgress();
+        }, (err) => {
+            console.error("Config load error:", err);
+            loadersFinished.config = true;
+            checkLoadProgress();
+        });
+
+        onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'overrides', 'data'), snap => {
+            overrides = snap.exists() ? snap.data() : {};
+            loadersFinished.overrides = true;
+            checkLoadProgress();
+        }, (err) => {
+            console.error("Overrides load error:", err);
+            loadersFinished.overrides = true;
+            checkLoadProgress();
+        });
+    };
+
+    const checkLoadProgress = () => {
+        render();
+        if ((loadersFinished.config && loadersFinished.overrides) || initialLoadDone) {
+            if (initialLoadDone) return;
+            initialLoadDone = true;
+            const loader = document.getElementById('appLoader');
+            loader.style.opacity = '0';
+            setTimeout(() => loader.remove(), 500);
+        }
+    };
+
+    // --- HELPER FUNCTIONS ---
+    function closeModals() {
+        document.getElementById('confirmModal').style.display = 'none';
+        document.getElementById('dayModal').style.display = 'none';
+        document.getElementById('overlay').classList.remove('active');
+        pendingAction = null;
+    }
+
+    // Exportar al window para usar desde el HTML si fuera necesario (aunque ahora usamos listeners)
+    window.closeModal = closeModals;
+
+    function customConfirm(text, action) {
+        document.getElementById('confirmText').textContent = text;
+        document.getElementById('confirmModal').style.display = 'block';
+        document.getElementById('overlay').classList.add('active');
+        pendingAction = action;
+    }
+
+    async function saveConfig() { if(user) await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'config'), config); }
+    async function saveOverrides() { if(user) await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'overrides', 'data'), overrides); }
+
+    // --- MODAL LOGIC (ROBUSTA) ---
+    
+    // Función global para abrir modal (se llama desde el render onclick)
+    window.openModal = (dateStr) => {
+      selectedDateStr = dateStr;
+      const partes = dateStr.split('-');
+      document.getElementById('modalDateTitle').textContent = `Día: ${partes[2]}/${partes[1]}/${partes[0]}`;
+      document.getElementById('dayModal').style.display = 'block';
+      document.getElementById('overlay').classList.add('active');
+    };
+
+    const setDayOverride = async (type) => {
+      console.log("Clic detectado en:", type);
+      if(!selectedDateStr) return;
+      
+      // 1. Aplicar cambio visual inmediato (Optimistic UI)
+      overrides[selectedDateStr] = type;
+      render(); // Repintar calendario atrás
+      
+      // 2. Cerrar modal de inmediato para que parezca rápido
+      closeModals();
+
+      // 3. Intentar guardar en segundo plano
+      try {
+          if (user) {
+              await saveOverrides();
+              console.log("Guardado exitoso");
+          } else {
+              console.warn("Usuario no autenticado, guardado solo local.");
+          }
+      } catch (e) {
+          console.error("Error guardando en la nube:", e);
+          // Opcional: mostrar alerta si falla, pero mejor no interrumpir
+      }
+    };
+
+    const clearDayOverride = async () => {
+      console.log("Borrando cambio");
+      if(!selectedDateStr) return;
+      
+      delete overrides[selectedDateStr];
+      render();
+      closeModals();
+
+      try {
+          if(user) await saveOverrides();
+      } catch (e) {
+          console.error("Error borrando en la nube:", e);
+      }
+    };
+
+    // --- LISTENERS MODAL (A prueba de balas) ---
+    const attachListener = (id, fn) => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('click', fn);
+        } else {
+            console.error("Botón no encontrado:", id);
+        }
+    };
+
+    attachListener('btnSetVacacion', () => setDayOverride('vacacion'));
+    attachListener('btnSetTrabajo', () => setDayOverride('trabajo'));
+    attachListener('btnSetFranco', () => setDayOverride('franco'));
+    attachListener('btnDelCambio', () => clearDayOverride());
+    attachListener('btnCloseModal', closeModals);
+
+    // --- OTROS LISTENERS ---
+    document.getElementById('confirmBtnYes').addEventListener('click', async () => {
+        if (pendingAction) await pendingAction();
+        closeModals();
+    });
+
+    document.getElementById('confirmBtnNo').addEventListener('click', closeModals);
+
+    window.removeRegime = (idx) => {
+        customConfirm("¿Seguro que quieres borrar este régimen?", async () => {
+            config.regimeHistory.splice(idx, 1);
+            await saveConfig();
+        });
+    };
+
+    function updateHistoryUI() {
+        const list = document.getElementById('regimeHistoryList');
+        list.innerHTML = '';
+        const indexedHistory = config.regimeHistory.map((reg, idx) => ({ ...reg, originalIndex: idx }));
+        const sorted = indexedHistory.sort((a, b) => new Date(b.start) - new Date(a.start));
+        
+        sorted.forEach((reg) => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            const infoDiv = document.createElement('div');
+            infoDiv.innerHTML = `<strong>${reg.start.split('-').reverse().join('/')}</strong><br>${reg.work}x${reg.off}`;
+            div.appendChild(infoDiv);
+            if (config.regimeHistory.length > 1) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger';
+                deleteBtn.style.cssText = 'width:auto; padding:5px 10px; margin:0;';
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); removeRegime(reg.originalIndex); });
+                div.appendChild(deleteBtn);
+            }
+            list.appendChild(div);
+        });
+    }
+
+    function getActiveRegimeForDate(date) {
+        const sorted = [...config.regimeHistory].sort((a, b) => new Date(b.start) - new Date(a.start));
+        return sorted.find(r => {
+            const startDate = new Date(r.start + 'T00:00:00');
+            return startDate <= date;
+        });
+    }
+
+    function render() {
+      const grid = document.getElementById('calendarGrid');
+      const monthLabel = document.getElementById('monthLabel');
+      const statusH1 = document.getElementById('todayStatus');
+      const mediaContainer = document.getElementById('mediaContainer');
+      const feriadosList = document.getElementById('feriadosList');
+      const statsTotal = document.getElementById('statTotal');
+      const statsUsed = document.getElementById('statUsed');
+      const statsRem = document.getElementById('statRemaining');
+      
+      grid.innerHTML = '';
+      const year = currentViewDate.getFullYear();
+      const month = currentViewDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      monthLabel.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(currentViewDate);
+      
+      ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day day-header';
+        el.textContent = d;
+        grid.appendChild(el);
+      });
+
+      for(let i=0; i<firstDay.getDay(); i++) grid.appendChild(document.createElement('div'));
+
+      let usedVacDays = 0;
+      Object.values(overrides).forEach(v => { if(v === 'vacacion') usedVacDays++; });
+
+      const eventosDelMes = [];
+
+      for(let d=1; d<=lastDay.getDate(); d++) {
+        const date = new Date(year, month, d);
+        date.setHours(0,0,0,0);
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayEl = document.createElement('div');
+        dayEl.className = 'day';
+        dayEl.textContent = d;
+
+        const activeRegime = getActiveRegimeForDate(date);
+        let finalType = 'no-regime';
+
+        if (activeRegime) {
+            const baseDate = new Date(activeRegime.start + 'T00:00:00');
+            baseDate.setHours(0,0,0,0);
+            const diffMs = date.getTime() - baseDate.getTime();
+            const diffDays = Math.round(diffMs / 86400000);
+            const cycleTotal = activeRegime.work + activeRegime.off;
+            const cyclePos = ((diffDays % cycleTotal) + cycleTotal) % cycleTotal;
+            finalType = cyclePos < activeRegime.work ? 'trabajo' : 'franco';
+        }
+        
+        if (overrides[dateStr]) finalType = overrides[dateStr];
+
+        const feriado = feriados2026.find(f => f.f === dateStr);
+        if (feriado && finalType !== 'vacacion') {
+          dayEl.classList.add(feriado.t === 'puente' ? 'puente' : 'feriado');
+          const esTrabajo = finalType === 'trabajo';
+          const statusStr = esTrabajo ? '<span style="color:#b71c1c; font-weight:bold;">🚨 Trabajas</span>' : '<span style="color:#0d47a1; font-weight:bold;">🥳 Franco</span>';
+          eventosDelMes.push(`<strong>${d}/${month + 1}:</strong> ${feriado.n} - ${statusStr}`);
+        } else {
+          dayEl.classList.add(finalType);
+        }
+
+        if (date.toDateString() === new Date().toDateString()) {
+          dayEl.classList.add('hoy');
+          const esTrabajo = finalType === 'trabajo';
+          statusH1.textContent = esTrabajo ? 'Guille está trabajando 👷' : (finalType === 'vacacion' ? 'Guille está de vacaciones 🏖️' : 'Guille está de franco 🎉');
+          mediaContainer.innerHTML = `<div class="iframe-wrapper"><iframe src="${esTrabajo ? urls.trabajo : urls.franco}" allow="autoplay"></iframe></div>`;
+        }
+        // Usamos window.openModal explícitamente
+        dayEl.onclick = () => window.openModal(dateStr);
+        grid.appendChild(dayEl);
+      }
+
+      feriadosList.innerHTML = eventosDelMes.length > 0 ? eventosDelMes.join('<br>') : "Sin eventos especiales este mes.";
+      statsTotal.textContent = config.vacations.total;
+      statsUsed.textContent = usedVacDays;
+      statsRem.textContent = Math.max(0, config.vacations.total - usedVacDays);
+    }
+
+    document.getElementById('saveRegime').onclick = async () => {
+      const work = parseInt(document.getElementById('regimeWork').value);
+      const off = parseInt(document.getElementById('regimeOff').value);
+      const start = document.getElementById('regimeBaseDate').value;
+      config.regimeHistory.push({ start, work, off });
+      await saveConfig();
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('active');
+    };
+
+    document.getElementById('resetRegimeHistory').onclick = async () => {
+        customConfirm("¿Borrar todo el historial y volver al inicio?", async () => {
+            config.regimeHistory = [{ start: '2025-04-07', work: 4, off: 2 }];
+            await saveConfig();
+        });
+    }
+
+    document.getElementById('saveVacTotal').onclick = async () => {
+      config.vacations.total = parseInt(document.getElementById('vacTotal').value);
+      await saveConfig();
+      const btn = document.getElementById('saveVacTotal');
+      btn.textContent = "✅ Guardado";
+      setTimeout(() => btn.textContent = "Guardar Total", 2000);
+    };
+
+    document.getElementById('resetAllOverrides').onclick = async () => {
+      customConfirm("¿Borrar todos los cambios manuales?", async () => {
+        overrides = {};
+        await saveOverrides();
+      });
+    };
+
+    document.getElementById('menuToggle').onclick = () => {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    };
+
+    document.getElementById('overlay').onclick = () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('active');
+      closeModals();
+    };
+
+    document.getElementById('prevBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); render(); };
+    document.getElementById('nextBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() + 1); render(); };
+    document.getElementById('goTodayBtn').onclick = () => { currentViewDate = new Date(); render(); };
+
+    document.getElementById('darkModeToggle').onclick = () => {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    };
+
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    
+    // Iniciar Autenticación
+    startAuth();
+  </script>
+</body>
+</html>
