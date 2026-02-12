@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estado de Guille - Sistema Pro</title>
+  <title>Estado de Guille - Sistema Pro (Shared)</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* --- ESTILOS ORIGINALES DE TU VERSIÓN FAVORITA (TEST.HTML) --- */
     :root {
       --bg-color: #f4f7f6;
       --container-bg: #ffffff;
@@ -39,110 +40,65 @@
       margin: 0;
       transition: 0.3s;
       overflow-x: hidden;
-      /* Prevenir scroll durante login */
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
-    /* --- PANTALLA DE LOGIN (NUEVO) --- */
-    #loginScreen {
+    /* PANTALLA DE CARGA */
+    #appLoader {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--bg-color);
-      z-index: 6000; /* Por encima de todo */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg-color); z-index: 5000;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
       transition: opacity 0.5s ease;
     }
-
-    .login-card {
-      background: var(--container-bg);
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      text-align: center;
-      max-width: 320px;
-      width: 90%;
+    .loader-spinner {
+      width: 50px; height: 50px; border: 5px solid var(--button-bg);
+      border-top: 5px solid var(--accent); border-radius: 50%;
+      animation: spin 1s linear infinite; margin-bottom: 15px;
     }
-
-    .google-btn {
-      background: white;
-      color: #555;
-      border: 1px solid #ddd;
-      padding: 12px 20px;
-      border-radius: 30px;
-      font-weight: bold;
-      font-family: 'Roboto', sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 20px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      font-size: 1rem;
-    }
-    .google-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    .google-icon { width: 20px; height: 20px; }
-
-    /* --- INTERFAZ PRINCIPAL (Oculta hasta login) --- */
-    #appContent {
-      display: none; /* Se activa con JS */
-      width: 100%;
-    }
-
-    /* --- INDICADOR DE ESTADO --- */
-    #syncStatus {
-      position: fixed; top: 20px; right: 70px;
-      background: var(--container-bg); padding: 8px 12px;
-      border-radius: 20px; font-size: 0.8em; font-weight: bold;
-      box-shadow: var(--shadow); z-index: 1000;
-      display: flex; align-items: center; gap: 6px;
-      transition: all 0.3s; opacity: 0;
-    }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
-    .syncing .status-dot { background: #ff9800; animation: pulse 1s infinite; }
-    .saved .status-dot { background: #4caf50; }
-    .error .status-dot { background: #f44336; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loader-text { font-weight: 500; color: var(--accent); animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
+    /* PANTALLA DE LOGIN (NUEVA, INTEGRADA AL ESTILO) */
+    #loginScreen {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: var(--bg-color); z-index: 6000;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: opacity 0.5s ease;
+    }
+    .login-box {
+        background: var(--container-bg); padding: 40px; border-radius: 20px;
+        box-shadow: var(--shadow); text-align: center; max-width: 90%; width: 300px;
+    }
+    .google-btn {
+        background: white; color: #444; border: 1px solid #ddd; padding: 12px;
+        border-radius: 30px; font-weight: bold; cursor: pointer; width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        margin-top: 20px; font-family: inherit; font-size: 1em;
+        transition: 0.2s;
+    }
+    .google-btn:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: scale(1.02); }
 
-    /* --- ESTILOS ORIGINALES CONSERVADOS --- */
+    /* MENU Y SIDEBAR */
     #menuToggle {
       position: fixed; top: 20px; left: 20px; z-index: 1000;
       background: var(--accent); color: white; border: none;
       padding: 12px 16px; border-radius: var(--radius); cursor: pointer;
-      box-shadow: var(--shadow); font-weight: bold;
-      display: flex; align-items: center; gap: 8px;
+      box-shadow: var(--shadow); font-weight: bold; display: flex; align-items: center; gap: 8px;
     }
 
     #sidebar {
       position: fixed; top: 0; left: calc(-1 * var(--sidebar-width));
       width: var(--sidebar-width); height: 100%;
-      background: var(--container-bg); z-index: 1001;
-      box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-      transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--container-bg); z-index: 999;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.1); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       padding: 80px 0 20px; box-sizing: border-box; overflow-y: auto;
       display: flex; flex-direction: column;
     }
     #sidebar.open { left: 0; }
-
-    .user-profile {
-        margin-top: auto; padding: 20px;
-        border-top: 1px solid var(--button-bg);
-        display: flex; align-items: center; gap: 10px;
-    }
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; }
-
     .sidebar-header { padding: 0 25px 20px; border-bottom: 1px solid var(--button-bg); margin-bottom: 10px; }
     .sidebar-header h2 { margin: 0; font-size: 1.4em; color: var(--accent); }
 
+    /* ACORDEON */
     .accordion-item { border-bottom: 1px solid var(--button-bg); }
     .accordion-header {
       width: 100%; padding: 18px 25px; background: none; border: none;
@@ -154,15 +110,17 @@
     .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s; background: var(--header-bg); }
     .accordion-item.active .accordion-content { max-height: 800px; padding: 20px 25px; }
 
+    /* FORMULARIOS Y BOTONES */
     .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
     label { font-size: 0.85em; font-weight: 500; opacity: 0.8; }
     input { padding: 10px; border-radius: 8px; border: 1px solid var(--button-bg); background: var(--container-bg); color: var(--text-color); font-size: 1em; }
-
+    
     .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 10px; transition: 0.2s; font-size: 0.95em; }
     .btn-primary { background: var(--accent); color: white; }
     .btn-danger { background: #ff5252; color: white; }
     .btn-secondary { background: var(--button-bg); color: var(--text-color); }
 
+    /* CALENDARIO Y UI */
     .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 998; display: none; backdrop-filter: blur(2px); }
     .overlay.active { display: block; }
     .main-content { max-width: 900px; margin: 40px auto; padding: 20px; text-align: center; }
@@ -171,11 +129,6 @@
     .iframe-wrapper iframe { width: 100%; height: 280px; border: none; display: block; }
 
     .calendar-container { background: var(--container-bg); padding: 25px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-
-    .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 0.85em; padding: 10px; background: var(--header-bg); border-radius: 10px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
-
     .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .calendar-header h2 { text-transform: capitalize; margin: 0; font-size: 1.3em; }
 
@@ -184,34 +137,30 @@
     .day:hover:not(.day-header) { transform: scale(1.05); }
     .day-header { font-weight: bold; background: var(--header-bg); color: var(--text-color); cursor: default; aspect-ratio: auto; min-height: 30px; }
 
+    /* ESTADOS */
     .trabajo { background: var(--color-trabajo); color: #1b5e20; }
     .franco { background: var(--color-franco); color: #0d47a1; }
     .feriado { background: var(--color-feriado); color: #b71c1c; font-weight: bold; }
     .vacacion { background: var(--color-vacaciones); color: #4a148c; }
     .puente { background: var(--color-puente); color: #e65100; }
     .no-regime { background: #e0e0e0; color: #777; font-style: italic; }
-
     .hoy { outline: 3px solid var(--text-color); outline-offset: -2px; z-index: 10; }
 
-    .vacation-title { margin-top: 30px; margin-bottom: 10px; font-size: 1.3em; font-weight: bold; color: var(--accent); }
-
-    .vacation-badge {
-      background: var(--color-vacaciones);
-      color: #4a148c;
-      padding: 20px;
-      border-radius: 15px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      font-weight: bold;
-      box-shadow: var(--shadow);
-    }
-
+    /* INFO EXTRA */
+    .vacation-badge { background: var(--color-vacaciones); color: #4a148c; padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-weight: bold; box-shadow: var(--shadow); }
     .month-info-box { margin-top: 20px; text-align: left; background: var(--container-bg); padding: 20px; border-radius: 15px; box-shadow: var(--shadow); border-left: 6px solid var(--accent); }
+    
+    .legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 0.85em; padding: 10px; background: var(--header-bg); border-radius: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
 
+    /* MODALES */
     #dayModal, #confirmModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--container-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 50px rgba(0,0,0,0.3); z-index: 2000; display: none; width: 300px; text-align: center; }
-
     #darkModeToggle { position: fixed; top: 20px; right: 20px; z-index: 1000; border: none; background: var(--container-bg); padding: 12px; border-radius: 50%; cursor: pointer; box-shadow: var(--shadow); font-size: 1.2em; }
+
+    /* PERFIL USUARIO */
+    .user-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--button-bg); display: flex; align-items: center; gap: 10px; }
+    .user-avatar { width: 35px; height: 35px; border-radius: 50%; }
 
     @media (max-width: 600px) {
       .day { font-size: 0.9em; }
@@ -223,149 +172,149 @@
 <body>
 
   <div id="loginScreen">
-    <div class="login-card">
-      <h1 style="color: var(--accent); margin: 0 0 15px;">Sistema Guille Pro</h1>
-      <p style="opacity: 0.7; margin-bottom: 25px;">Inicia sesión para sincronizar el calendario.</p>
-      
-      <button id="googleLoginBtn" class="google-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G" class="google-icon">
-        Entrar con Google
-      </button>
-      <p id="loginError" style="color: #ff5252; font-size: 0.9em; margin-top: 20px; display: none;"></p>
+    <div class="login-box">
+        <h2 style="margin-top:0; color:var(--accent);">Bienvenido</h2>
+        <p style="opacity:0.7;">Inicia sesión para sincronizar el calendario compartido.</p>
+        <button id="googleLoginBtn" class="google-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G" style="width:20px;">
+            Entrar con Google
+        </button>
+        <p id="loginError" style="color:#ff5252; font-size:0.8em; margin-top:15px; display:none;"></p>
     </div>
   </div>
 
-  <div id="appContent">
-    <div id="syncStatus">
-        <div class="status-dot"></div>
-        <span id="syncText">Conectando...</span>
-    </div>
+  <div id="appLoader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text" id="loaderStatus">Cargando...</div>
+  </div>
 
-    <button id="menuToggle">☰ Centro de Control</button>
-    <button id="darkModeToggle">🌙</button>
+  <div id="appContent" style="display:none;">
+      
+      <button id="menuToggle">☰ Centro de Control</button>
+      <button id="darkModeToggle">🌙</button>
 
-    <div class="overlay" id="overlay"></div>
+      <div class="overlay" id="overlay"></div>
 
-    <div id="sidebar">
+      <div id="sidebar">
         <div class="sidebar-header">
-            <h2>Configuración</h2>
-            <small style="opacity:0.6">Modo: Calendario Compartido</small>
+            <h2>Panel de Configuración</h2>
+            <small style="opacity:0.6">Modo Compartido</small>
         </div>
 
         <div class="accordion-item" id="accRegime">
-        <button class="accordion-header">📅 Régimen Modular</button>
-        <div class="accordion-content">
+          <button class="accordion-header">📅 Régimen Modular</button>
+          <div class="accordion-content">
             <div class="input-group">
-            <label>Días de Trabajo:</label>
-            <input type="number" id="regimeWork" value="4">
+              <label>Días de Trabajo:</label>
+              <input type="number" id="regimeWork" value="4">
             </div>
             <div class="input-group">
-            <label>Días de Franco:</label>
-            <input type="number" id="regimeOff" value="2">
+              <label>Días de Franco:</label>
+              <input type="number" id="regimeOff" value="2">
             </div>
             <div class="input-group">
-            <label>Fecha de Inicio:</label>
-            <p style="font-size: 0.75em; opacity: 0.7; margin: 0;">Los cambios aplican desde:</p>
-            <input type="date" id="regimeBaseDate" value="2026-02-11">
+              <label>Fecha de Inicio:</label>
+              <input type="date" id="regimeBaseDate" value="2026-02-11">
             </div>
-            <button class="btn btn-primary" id="saveRegime">Agregar Régimen</button>
+            <button class="btn btn-primary" id="saveRegime">Agregar Nuevo Régimen</button>
             
             <div style="margin-top:20px;">
-                <label style="color: var(--accent);">Historial:</label>
+                <label style="color: var(--accent);">Historial de Cambios:</label>
                 <div id="regimeHistoryList"></div>
-                <button class="btn btn-danger" style="margin-top:10px; font-size: 0.8em;" id="resetRegimeHistory">Reiniciar Historial</button>
+                <button class="btn btn-danger" style="margin-top:10px; font-size: 0.8em;" id="resetRegimeHistory">Restablecer Todo</button>
             </div>
-        </div>
+          </div>
         </div>
 
         <div class="accordion-item" id="accVac">
-        <button class="accordion-header">🏖️ Vacaciones</button>
-        <div class="accordion-content">
+          <button class="accordion-header">🏖️ Vacaciones</button>
+          <div class="accordion-content">
             <div class="input-group">
-            <label>Total Días Vacaciones:</label>
-            <input type="number" id="vacTotal" value="15">
+              <label>Total Días Vacaciones:</label>
+              <input type="number" id="vacTotal" value="15">
             </div>
             <button class="btn btn-primary" id="saveVacTotal">Guardar Total</button>
-        </div>
+          </div>
         </div>
 
         <div class="accordion-item" id="accSystem">
-        <button class="accordion-header">⚙️ Sistema</button>
-        <div class="accordion-content">
+          <button class="accordion-header">⚙️ Sistema</button>
+          <div class="accordion-content">
             <button class="btn btn-danger" id="resetAllOverrides">Borrar Cambios Manuales</button>
-        </div>
+          </div>
         </div>
 
         <div class="user-profile">
             <img id="userAvatar" class="user-avatar" src="" alt="">
-            <div>
-                <div id="userName" style="font-weight:bold; font-size:0.9em;">Usuario</div>
-                <button id="logoutBtn" style="background:none; border:none; color:#ff5252; font-weight:bold; cursor:pointer; padding:0; font-size:0.8em;">Cerrar Sesión</button>
+            <div style="flex:1; overflow:hidden;">
+                <div id="userName" style="font-weight:bold; font-size:0.9em; white-space:nowrap;">Usuario</div>
+                <div id="syncIndicator" style="font-size:0.75em; color:var(--accent);">● Sincronizado</div>
             </div>
+            <button id="logoutBtn" style="background:none; border:none; cursor:pointer; font-size:1.2em;">🚪</button>
         </div>
-    </div>
+      </div>
 
-    <div id="dayModal">
+      <div id="dayModal">
         <h3 id="modalDateTitle" style="margin-top:0; color:var(--accent);">Día</h3>
-        <button id="btnSetVacacion" class="btn btn-primary" style="background:var(--color-vacaciones); color:#4a148c;">Vacaciones</button>
-        <button id="btnSetTrabajo" class="btn btn-secondary">Forzar Trabajo</button>
-        <button id="btnSetFranco" class="btn btn-secondary">Forzar Franco</button>
-        <button id="btnDelCambio" class="btn btn-danger">Eliminar Cambio</button>
-        <button id="btnCloseModal" class="btn btn-secondary" style="margin-top:10px">Cancelar</button>
-    </div>
+        <button class="btn btn-primary" style="background:var(--color-vacaciones); color:#4a148c;" onclick="setDayOverride('vacacion')">Vacaciones</button>
+        <button class="btn btn-secondary" onclick="setDayOverride('trabajo')">Forzar Trabajo</button>
+        <button class="btn btn-secondary" onclick="setDayOverride('franco')">Forzar Franco</button>
+        <button class="btn btn-danger" onclick="clearDayOverride()">Eliminar Cambio</button>
+        <button class="btn btn-secondary" style="margin-top:10px" onclick="closeModal()">Cancelar</button>
+      </div>
 
-    <div id="confirmModal">
+      <div id="confirmModal">
         <h3 id="confirmTitle" style="color: #ff5252;">¿Confirmar acción?</h3>
         <p id="confirmText">¿Estás seguro?</p>
         <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn btn-danger" id="confirmBtnYes">Sí</button>
-        <button class="btn btn-secondary" id="confirmBtnNo">No</button>
+          <button class="btn btn-danger" id="confirmBtnYes">Sí</button>
+          <button class="btn btn-secondary" id="confirmBtnNo">No</button>
         </div>
-    </div>
+      </div>
 
-    <div class="main-content">
-        <h1 id="todayStatus" style="font-size: 1.8em; margin-bottom: 0;">Calculando...</h1>
+      <div class="main-content">
+        <h1 id="todayStatus" style="font-size: 1.8em; margin-bottom: 0;">Cargando...</h1>
         
         <div id="mediaContainer"></div>
         
         <div class="calendar-container">
-        <div class="legend">
+          <div class="legend">
             <div class="legend-item"><div class="legend-box" style="background:var(--color-trabajo)"></div>Trabajo</div>
             <div class="legend-item"><div class="legend-box" style="background:var(--color-franco)"></div>Franco</div>
             <div class="legend-item"><div class="legend-box" style="background:var(--color-feriado)"></div>Feriado</div>
             <div class="legend-item"><div class="legend-box" style="background:var(--color-puente)"></div>Puente</div>
             <div class="legend-item"><div class="legend-box" style="background:var(--color-vacaciones)"></div>Vacaciones</div>
-        </div>
+          </div>
 
-        <div class="calendar-header">
+          <div class="calendar-header">
             <div class="nav-buttons-inline">
                 <button class="btn btn-secondary" style="width:auto; padding: 10px 15px;" id="prevBtn">«</button>
                 <button class="btn btn-primary" style="width:auto; padding: 10px 20px;" id="goTodayBtn">Hoy</button>
             </div>
             <h2 id="monthLabel">Mes Año</h2>
             <button class="btn btn-secondary" style="width:auto; padding: 10px 15px;" id="nextBtn">»</button>
-        </div>
+          </div>
 
-        <div class="grid" id="calendarGrid"></div>
+          <div class="grid" id="calendarGrid"></div>
         </div>
 
         <div class="vacation-title">📊 Control de Vacaciones</div>
         <div class="vacation-badge">
-        <div>Totales<br><span id="statTotal" style="font-size: 1.5em;">-</span></div>
-        <div>Usados<br><span id="statUsed" style="font-size: 1.5em;">-</span></div>
-        <div>Restantes<br><span id="statRemaining" style="font-size: 1.5em;">-</span></div>
+          <div>Totales<br><span id="statTotal" style="font-size: 1.5em;">-</span></div>
+          <div>Usados<br><span id="statUsed" style="font-size: 1.5em;">-</span></div>
+          <div>Restantes<br><span id="statRemaining" style="font-size: 1.5em;">-</span></div>
         </div>
         
         <div class="month-info-box">
             <h3 style="margin-top:0; font-size: 1.1em;">📅 Detalle del Mes:</h3>
             <div id="feriadosList"></div>
         </div>
-    </div>
+      </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // --- CONFIGURACIÓN FIREBASE ---
@@ -383,9 +332,7 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // --- RUTA COMPARTIDA (LA CLAVE PARA SER ADMIN) ---
-    // En lugar de usar el ID del usuario, usamos una ID FIJA para la "casa"
-    // Así, tanto tú como Guille leerán y escribirán en el mismo lugar.
+    // RUTA COMPARTIDA (CLAVE PARA MODO ESPEJO)
     const SHARED_PATH = "familia_guille_pro";
 
     const urls = {
@@ -396,7 +343,6 @@
     let currentUser = null;
     let config = { regimeHistory: [{ start: '2025-04-07', work: 4, off: 2 }], vacations: { total: 15 } };
     let overrides = {}; 
-    let initialLoadDone = false;
 
     const feriados2026 = [
       { f: '2026-01-01', n: 'Año Nuevo', t: 'oficial' },
@@ -424,106 +370,7 @@
     let selectedDateStr = null;
     let pendingAction = null;
 
-    // --- UI STATUS ---
-    const updateSyncStatus = (status) => {
-      const el = document.getElementById('syncStatus');
-      const text = document.getElementById('syncText');
-      el.style.opacity = '1'; el.className = '';
-      
-      if (status === 'syncing') { el.classList.add('syncing'); text.textContent = 'Guardando...'; }
-      else if (status === 'saved') { el.classList.add('saved'); text.textContent = 'Al día'; setTimeout(() => el.style.opacity = '0', 3000); }
-      else if (status === 'live') { el.classList.add('saved'); text.textContent = '● En Vivo'; }
-      else { el.classList.add('error'); text.textContent = 'Error'; }
-    };
-
-    // --- AUTENTICACIÓN GOOGLE ---
-    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-        try {
-            await signInWithPopup(auth, provider);
-        } catch (error) {
-            console.error(error);
-            const errDiv = document.getElementById('loginError');
-            errDiv.style.display = 'block';
-            errDiv.textContent = "Error: " + error.message;
-            if (error.code === 'auth/operation-not-allowed') {
-               errDiv.textContent = "⚠️ Habilita Google Auth en la consola de Firebase."; 
-            }
-        }
-    });
-
-    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-
-    // Monitor de Sesión
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            // Ocultar login, mostrar app
-            document.getElementById('loginScreen').style.opacity = '0';
-            setTimeout(() => document.getElementById('loginScreen').style.display = 'none', 500);
-            document.getElementById('appContent').style.display = 'block';
-
-            // Cargar datos de perfil
-            document.getElementById('userName').textContent = user.displayName;
-            if (user.photoURL) document.getElementById('userAvatar').src = user.photoURL;
-            
-            updateSyncStatus('live');
-            startLiveSync(); // Iniciar la conexión compartida
-        } else {
-            currentUser = null;
-            // Mostrar login, ocultar app
-            document.getElementById('appContent').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('loginScreen').style.opacity = '1';
-        }
-    });
-
-    // --- SINCRONIZACIÓN EN TIEMPO REAL (COMPARTIDA) ---
-    function startLiveSync() {
-        // Escuchar CONFIGURACIÓN GENERAL
-        onSnapshot(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'settings'), (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.regimeHistory) config.regimeHistory = data.regimeHistory;
-                if (data.vacations) config.vacations = data.vacations;
-                updateHistoryUI();
-                render();
-            } else {
-                // Si es la primera vez que se usa la app compartida, crear doc inicial
-                saveConfig(); 
-            }
-        });
-
-        // Escuchar CAMBIOS DEL DÍA (OVERRIDES)
-        onSnapshot(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'overrides'), (snap) => {
-            if (snap.exists()) {
-                overrides = snap.data();
-                render(); // Actualizar UI automáticamente si Guille cambia algo
-            }
-        });
-    }
-
-    // --- GUARDADO COMPARTIDO ---
-    async function saveConfig() {
-        if (!currentUser) return;
-        updateSyncStatus('syncing');
-        try {
-            await setDoc(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'settings'), config);
-            updateSyncStatus('saved');
-        } catch(e) { console.error(e); updateSyncStatus('error'); }
-    }
-
-    async function saveOverrides() {
-        if (!currentUser) return;
-        updateSyncStatus('syncing');
-        try {
-            await setDoc(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'overrides'), overrides);
-            updateSyncStatus('saved');
-        } catch(e) { console.error(e); updateSyncStatus('error'); }
-    }
-
-    // --- LÓGICA DE INTERFAZ Y CALENDARIO (IGUAL QUE ANTES) ---
-    
-    // ACORDEON
+    // --- ACCORDION ---
     document.querySelectorAll('.accordion-header').forEach(header => {
       header.addEventListener('click', () => {
         const item = header.parentElement;
@@ -533,13 +380,105 @@
       });
     });
 
-    // HELPER MODALES
-    function closeModals() {
+    // --- AUTHENTICATION & SYNC ---
+    
+    // Botón Google
+    document.getElementById('googleLoginBtn').onclick = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (e) {
+            console.error(e);
+            const errDiv = document.getElementById('loginError');
+            errDiv.style.display = 'block';
+            errDiv.textContent = "Error: " + e.message;
+        }
+    };
+
+    // Botón Salir
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
+
+    // Estado Auth
+    onAuthStateChanged(auth, (user) => {
+        const loader = document.getElementById('appLoader');
+        const loginScreen = document.getElementById('loginScreen');
+        const appContent = document.getElementById('appContent');
+
+        if (user) {
+            currentUser = user;
+            // UI Update
+            document.getElementById('userName').textContent = user.displayName || "Usuario";
+            if (user.photoURL) document.getElementById('userAvatar').src = user.photoURL;
+
+            // Transiciones
+            loginScreen.style.opacity = '0';
+            setTimeout(() => {
+                loginScreen.style.display = 'none';
+                appContent.style.display = 'block';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 500);
+
+            // IMPORTANTE: Render inicial para que no se quede en "Calculando..."
+            render(); 
+            // Iniciar escucha de datos compartidos
+            startLiveSync();
+
+        } else {
+            // No user
+            currentUser = null;
+            appContent.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            loginScreen.style.opacity = '1';
+            loader.style.display = 'none';
+        }
+    });
+
+    // SYNC COMPARTIDA
+    function startLiveSync() {
+        // Escuchar CONFIG
+        onSnapshot(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'settings'), (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.regimeHistory) config.regimeHistory = data.regimeHistory;
+                if (data.vacations) config.vacations = data.vacations;
+                updateHistoryUI();
+                render(); // Actualizar calendario cuando llegan datos
+            } else {
+                saveConfig(); // Crear doc si no existe
+            }
+        });
+
+        // Escuchar OVERRIDES
+        onSnapshot(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'overrides'), (snap) => {
+            if (snap.exists()) {
+                overrides = snap.data();
+                render(); // Actualizar calendario cuando llegan cambios
+            }
+        });
+    }
+
+    // SAVING
+    async function saveConfig() {
+        if (!currentUser) return;
+        document.getElementById('syncIndicator').textContent = "🔄 Guardando...";
+        await setDoc(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'settings'), config);
+        document.getElementById('syncIndicator').textContent = "● Sincronizado";
+    }
+
+    async function saveOverrides() {
+        if (!currentUser) return;
+        document.getElementById('syncIndicator').textContent = "🔄 Guardando...";
+        await setDoc(doc(db, 'calendario_compartido', SHARED_PATH, 'data', 'overrides'), overrides);
+        document.getElementById('syncIndicator').textContent = "● Sincronizado";
+    }
+
+    // --- HELPER FUNCTIONS ---
+    window.closeModal = () => {
         document.getElementById('confirmModal').style.display = 'none';
         document.getElementById('dayModal').style.display = 'none';
         document.getElementById('overlay').classList.remove('active');
         pendingAction = null;
-    }
+    };
 
     function customConfirm(text, action) {
         document.getElementById('confirmText').textContent = text;
@@ -548,7 +487,14 @@
         pendingAction = action;
     }
 
-    // MODAL LOGIC
+    document.getElementById('confirmBtnYes').addEventListener('click', async () => {
+        if (pendingAction) await pendingAction();
+        window.closeModal();
+    });
+
+    document.getElementById('confirmBtnNo').addEventListener('click', () => window.closeModal());
+
+    // --- MODAL LOGIC EXPOSED TO WINDOW FOR ONCLICK ---
     window.openModal = (dateStr) => {
       selectedDateStr = dateStr;
       const partes = dateStr.split('-');
@@ -557,40 +503,21 @@
       document.getElementById('overlay').classList.add('active');
     };
 
-    const setDayOverride = async (type) => {
-      if(!selectedDateStr) return;
+    window.setDayOverride = async (type) => {
       overrides[selectedDateStr] = type;
-      render(); // UI Optimista
-      closeModals();
+      render(); // Optimistic UI
+      window.closeModal();
       await saveOverrides();
     };
 
-    const clearDayOverride = async () => {
-      if(!selectedDateStr) return;
+    window.clearDayOverride = async () => {
       delete overrides[selectedDateStr];
-      render();
-      closeModals();
+      render(); // Optimistic UI
+      window.closeModal();
       await saveOverrides();
     };
 
-    // LISTENERS MODAL
-    const attachListener = (id, fn) => {
-        const el = document.getElementById(id);
-        if(el) el.addEventListener('click', fn);
-    };
-    attachListener('btnSetVacacion', () => setDayOverride('vacacion'));
-    attachListener('btnSetTrabajo', () => setDayOverride('trabajo'));
-    attachListener('btnSetFranco', () => setDayOverride('franco'));
-    attachListener('btnDelCambio', () => clearDayOverride());
-    attachListener('btnCloseModal', closeModals);
-
-    // OTROS LISTENERS
-    document.getElementById('confirmBtnYes').addEventListener('click', async () => {
-        if (pendingAction) await pendingAction();
-        closeModals();
-    });
-    document.getElementById('confirmBtnNo').addEventListener('click', closeModals);
-
+    // --- CALENDAR LOGIC (MATH) ---
     window.removeRegime = (idx) => {
         customConfirm("¿Seguro que quieres borrar este régimen?", async () => {
             config.regimeHistory.splice(idx, 1);
@@ -701,7 +628,6 @@
           statusH1.textContent = esTrabajo ? 'Guille está trabajando 👷' : (finalType === 'vacacion' ? 'Guille está de vacaciones 🏖️' : 'Guille está de franco 🎉');
           mediaContainer.innerHTML = `<div class="iframe-wrapper"><iframe src="${esTrabajo ? urls.trabajo : urls.franco}" allow="autoplay"></iframe></div>`;
         }
-        
         dayEl.onclick = () => window.openModal(dateStr);
         grid.appendChild(dayEl);
       }
@@ -754,7 +680,7 @@
     document.getElementById('overlay').onclick = () => {
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('overlay').classList.remove('active');
-      closeModals();
+      window.closeModal();
     };
 
     document.getElementById('prevBtn').onclick = () => { currentViewDate.setMonth(currentViewDate.getMonth() - 1); render(); };
@@ -767,7 +693,7 @@
     };
 
     if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-
+    
   </script>
 </body>
 </html>
